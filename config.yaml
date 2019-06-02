@@ -1,0 +1,21 @@
+cert: tls.crt
+key: tls.key
+inputs:
+- type: KubernetesTokenReview
+  name: kubernetes
+  path: /kubernetes
+  config:
+    publicKey: key.pub
+    audience: kubernetes
+    claims:
+      uid: sub
+      user: sub
+      groups: groups
+    prefix: spiffe://domain/path
+outputs:
+- type: KubernetesTokenReview
+  name: kubernetes
+  path: /kubernetes
+  config:
+    audience: kubernetes
+    maxTTL: 300
