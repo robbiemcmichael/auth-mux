@@ -1,7 +1,13 @@
 package output
 
 import (
-	"fmt"
+	"encoding/json"
+	"net/http"
+
+	auth "k8s.io/api/authentication/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/robbiemcmichael/auth-mux/internal/types"
 )
 
 type KubernetesTokenReview struct {
@@ -9,6 +15,22 @@ type KubernetesTokenReview struct {
 	MaxTTL   int64  `yaml:"maxTTL"`
 }
 
-func (o *KubernetesTokenReview) Config() string {
-	return fmt.Sprintf("%+v", o)
+func (o *KubernetesTokenReview) Handler(w http.ResponseWriter, result types.Result) error {
+	tokenReview := auth.TokenReview{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: auth.SchemeGroupVersion.String(),
+			Kind:       "TokenReview",
+		},
+		Status: auth.TokenReviewStatus{
+			Authenticated: result.Valid,
+			User: auth.UserInfo{
+				UID: result.Claims.UID,
+				Username: result.Claims.User,
+				Groups: result.Claims.Groups,
+			},
+			Error: result.Error,
+		},
+	}
+
+	return json.NewEncoder(w).Encode(tokenReview)
 }
