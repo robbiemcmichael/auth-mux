@@ -8,23 +8,21 @@ import (
 	"path"
 
 	"github.com/robbiemcmichael/auth-mux/internal/config"
-	"github.com/robbiemcmichael/auth-mux/internal/input"
-	"github.com/robbiemcmichael/auth-mux/internal/output"
 )
 
-func handler(inputHandler input.HandlerFunc, outputHandler output.HandlerFunc) http.HandlerFunc {
+func handler(i config.Input, o config.Output) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		result, err := inputHandler(r)
+		result, err := i.Config.Handler(r)
 		if err != nil {
-			log.Printf("input handler: %v", err)
+			log.Printf("input handler for %q: %v", i.Name, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
 
 		log.Printf("Authentication result: %+v", result)
 
-		if err := outputHandler(w, result); err != nil {
-			log.Printf("output handler: %v", err)
+		if err := o.Config.Handler(w, result); err != nil {
+			log.Printf("output handler for %q: %v", o.Name, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
@@ -46,7 +44,7 @@ func main() {
 	for _, i := range config.Inputs {
 		for _, o := range config.Outputs {
 			httpPath := path.Clean("/" + i.Path + "/" + o.Path)
-			handler := handler(i.Config.Handler, o.Config.Handler)
+			handler := handler(i, o)
 			http.HandleFunc(httpPath, handler)
 			log.Printf("Added handler: %s", httpPath)
 		}
