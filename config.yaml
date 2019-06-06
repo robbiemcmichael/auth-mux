@@ -5,13 +5,16 @@ inputs:
   name: kubernetes
   path: /kubernetes
   config:
-    publicKey: key.pub
-    audience: kubernetes
+    audience:
+    - kubernetes
+    issuers:
+      domain:
+        publicKey: key.pub
+        prefix: spiffe://domain/path
     claims:
       uid: sub
       user: sub
       groups: groups
-    prefix: spiffe://domain/path
 outputs:
 - type: KubernetesTokenReview
   name: kubernetes
