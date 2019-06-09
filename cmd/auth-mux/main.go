@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -30,7 +32,10 @@ func handler(i config.Input, o config.Output) http.HandlerFunc {
 }
 
 func main() {
-	data, err := ioutil.ReadFile("config.yaml")
+	configPath := flag.String("c", "config.yaml", "path to the config file")
+	flag.Parse()
+
+	data, err := ioutil.ReadFile(*configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,5 +55,6 @@ func main() {
 		}
 	}
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	bind := fmt.Sprintf("%s:%d", config.Address, config.Port)
+	log.Fatal(http.ListenAndServeTLS(bind, config.Cert, config.Key, nil))
 }

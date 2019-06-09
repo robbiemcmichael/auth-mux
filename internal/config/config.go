@@ -9,6 +9,8 @@ import (
 )
 
 type Config struct {
+	Address string   `yaml:"address"`
+	Port    int      `yaml:"port"`
 	Cert    string   `yaml:"cert"`
 	Key     string   `yaml:"key"`
 	Inputs  []Input  `yaml:"inputs"`
