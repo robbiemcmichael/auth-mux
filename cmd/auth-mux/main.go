@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"path"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/robbiemcmichael/auth-mux/internal/config"
 )

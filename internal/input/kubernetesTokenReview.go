@@ -12,7 +12,7 @@ import (
 	auth "k8s.io/api/authentication/v1"
 
 	"github.com/robbiemcmichael/auth-mux/internal/types"
-        "gopkg.in/square/go-jose.v2/jwt"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 type KubernetesTokenReview struct {
@@ -89,7 +89,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Result,
 
 	expected := jwt.Expected{
 		Audience: i.Audience,
-		Time: time.Now(),
+		Time:     time.Now(),
 	}
 	if err := publicClaims.Validate(expected); err != nil {
 		invalid := types.Result{
@@ -105,13 +105,12 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Result,
 	}
 
 	result := types.Result{
-		Valid: true,
+		Valid:  true,
 		Claims: claims,
 	}
 
 	return result, nil
 }
-
 
 func (issuer *Issuer) parsePublicKey() error {
 	contents, err := ioutil.ReadFile(issuer.PublicKeyFile)
@@ -179,10 +178,10 @@ func getClaims(token jwt.JSONWebToken, fields JWTClaims) (types.Claims, error) {
 	}
 
 	c := types.Claims{
-		UID: uid,
-		User: user,
+		UID:    uid,
+		User:   user,
 		Groups: groups,
-		Extra: claimsMap[fields.Extra],
+		Extra:  claimsMap[fields.Extra],
 	}
 
 	return c, nil

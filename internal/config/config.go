@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/robbiemcmichael/auth-mux/internal/input"
@@ -28,9 +29,9 @@ type Input struct {
 
 func (i *Input) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var wrapper struct {
-		Type   string `yaml:"type"`
-		Name   string `yaml:"name"`
-		Path   string `yaml:"path"`
+		Type   string      `yaml:"type"`
+		Name   string      `yaml:"name"`
+		Path   string      `yaml:"path"`
 		Config interface{} `yaml:"config"`
 	}
 
@@ -58,9 +59,9 @@ func (i *Input) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	*i = Input{
-		Type: wrapper.Type,
-		Name: wrapper.Name,
-		Path: wrapper.Path,
+		Type:   wrapper.Type,
+		Name:   wrapper.Name,
+		Path:   wrapper.Path,
 		Config: config,
 	}
 
@@ -77,9 +78,9 @@ type Output struct {
 
 func (o *Output) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var wrapper struct {
-		Type   string `yaml:"type"`
-		Name   string `yaml:"name"`
-		Path   string `yaml:"path"`
+		Type   string      `yaml:"type"`
+		Name   string      `yaml:"name"`
+		Path   string      `yaml:"path"`
 		Config interface{} `yaml:"config"`
 	}
 
@@ -107,9 +108,9 @@ func (o *Output) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	*o = Output{
-		Type: wrapper.Type,
-		Name: wrapper.Name,
-		Path: wrapper.Path,
+		Type:   wrapper.Type,
+		Name:   wrapper.Name,
+		Path:   wrapper.Path,
 		Config: config,
 	}
 

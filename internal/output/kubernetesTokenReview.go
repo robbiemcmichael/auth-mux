@@ -24,9 +24,9 @@ func (o *KubernetesTokenReview) Handler(w http.ResponseWriter, result types.Resu
 		Status: auth.TokenReviewStatus{
 			Authenticated: result.Valid,
 			User: auth.UserInfo{
-				UID: result.Claims.UID,
+				UID:      result.Claims.UID,
 				Username: result.Claims.User,
-				Groups: result.Claims.Groups,
+				Groups:   result.Claims.Groups,
 			},
 			Error: result.Error,
 		},
