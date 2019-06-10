@@ -6,8 +6,8 @@ import (
 	"github.com/robbiemcmichael/auth-mux/internal/types"
 )
 
-type HandlerFunc func(*http.Request) (types.Result, error)
+type HandlerFunc func(*http.Request) (types.Validation, error)
 
 type Input interface {
-	Handler(*http.Request) (types.Result, error)
+	Handler(*http.Request) (types.Validation, error)
 }

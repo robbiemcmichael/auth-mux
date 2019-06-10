@@ -29,47 +29,47 @@ type Issuer struct {
 	PublicKeyFile string `yaml:"publicKey"`
 	// Parsed public key (*rsa.PublicKey, *dsa.PublicKey or *ecdsa.PublicKey)
 	PublicKey interface{}
-	// If provided, assert that the prefix is included in the user and groups claims
+	// If provided, assert that the prefix is included in the ID, subject and groups claims
 	Prefix string `yaml:"prefix"`
 }
 
 type JWTClaims struct {
-	UID    string `yaml:"uid"`
-	User   string `yaml:"user"`
-	Groups string `yaml:"groups"`
-	Extra  string `yaml:"extra"`
+	ID      string `yaml:"id"`
+	Subject string `yaml:"subject"`
+	Groups  string `yaml:"groups"`
+	Extra   string `yaml:"extra"`
 }
 
-func (i *KubernetesTokenReview) Handler(r *http.Request) (types.Result, error) {
+func (i *KubernetesTokenReview) Handler(r *http.Request) (types.Validation, error) {
 	decoder := json.NewDecoder(r.Body)
 
 	var tokenReview auth.TokenReview
 	if err := decoder.Decode(&tokenReview); err != nil {
-		return types.Result{}, fmt.Errorf("decode JSON: %v", err)
+		return types.Validation{}, fmt.Errorf("decode JSON: %v", err)
 	}
 
-	result, err := i.validateToken(tokenReview.Spec.Token)
+	validation, err := i.validateToken(tokenReview.Spec.Token)
 	if err != nil {
-		return types.Result{}, fmt.Errorf("validate token: %v", err)
+		return types.Validation{}, fmt.Errorf("validate token: %v", err)
 	}
 
-	return result, nil
+	return validation, nil
 }
 
-func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Result, error) {
+func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validation, error) {
 	token, err := jwt.ParseSigned(tokenString)
 	if err != nil {
-		return types.Result{}, fmt.Errorf("parse token: %v", err)
+		return types.Validation{}, fmt.Errorf("parse token: %v", err)
 	}
 
 	issuerString, err := getIssuer(*token)
 	if err != nil {
-		return types.Result{}, fmt.Errorf("get issuer: %v", err)
+		return types.Validation{}, fmt.Errorf("get issuer: %v", err)
 	}
 
 	issuer := i.Issuers[issuerString]
 	if issuer == nil {
-		invalid := types.Result{
+		invalid := types.Validation{
 			Valid: false,
 			Error: fmt.Sprintf("Invalid token: unknown issuer %q", issuerString),
 		}
@@ -78,13 +78,13 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Result,
 
 	if issuer.PublicKey == nil {
 		if err := issuer.parsePublicKey(); err != nil {
-			return types.Result{}, fmt.Errorf("parse public key for issuer %q: %v", issuerString, err)
+			return types.Validation{}, fmt.Errorf("parse public key for issuer %q: %v", issuerString, err)
 		}
 	}
 
 	var publicClaims jwt.Claims
 	if err := token.Claims(issuer.PublicKey, &publicClaims); err != nil {
-		return types.Result{}, fmt.Errorf("parse public claims: %v", err)
+		return types.Validation{}, fmt.Errorf("parse public claims: %v", err)
 	}
 
 	expected := jwt.Expected{
@@ -92,7 +92,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Result,
 		Time:     time.Now(),
 	}
 	if err := publicClaims.Validate(expected); err != nil {
-		invalid := types.Result{
+		invalid := types.Validation{
 			Valid: false,
 			Error: fmt.Sprintf("Invalid token: %v", err),
 		}
@@ -101,15 +101,15 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Result,
 
 	claims, err := getClaims(*token, i.Claims)
 	if err != nil {
-		return types.Result{}, err
+		return types.Validation{}, err
 	}
 
-	result := types.Result{
+	validation := types.Validation{
 		Valid:  true,
 		Claims: claims,
 	}
 
-	return result, nil
+	return validation, nil
 }
 
 func (issuer *Issuer) parsePublicKey() error {
@@ -152,14 +152,14 @@ func getClaims(token jwt.JSONWebToken, fields JWTClaims) (types.Claims, error) {
 		return types.Claims{}, fmt.Errorf("failed to cast JWT claims to map[string]interface{}")
 	}
 
-	uid, ok := claimsMap[fields.UID].(string)
+	id, ok := claimsMap[fields.ID].(string)
 	if !ok {
-		return types.Claims{}, fmt.Errorf("failed to cast %q claim to string", fields.UID)
+		return types.Claims{}, fmt.Errorf("failed to cast %q claim to string", fields.ID)
 	}
 
-	user, ok := claimsMap[fields.User].(string)
+	subject, ok := claimsMap[fields.Subject].(string)
 	if !ok {
-		return types.Claims{}, fmt.Errorf("failed to cast %q claim to string", fields.User)
+		return types.Claims{}, fmt.Errorf("failed to cast %q claim to string", fields.Subject)
 	}
 
 	interfaceArray, ok := claimsMap[fields.Groups].([]interface{})
@@ -178,10 +178,10 @@ func getClaims(token jwt.JSONWebToken, fields JWTClaims) (types.Claims, error) {
 	}
 
 	c := types.Claims{
-		UID:    uid,
-		User:   user,
-		Groups: groups,
-		Extra:  claimsMap[fields.Extra],
+		ID:      id,
+		Subject: subject,
+		Groups:  groups,
+		Extra:   claimsMap[fields.Extra],
 	}
 
 	return c, nil

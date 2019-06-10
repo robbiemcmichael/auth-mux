@@ -12,8 +12,8 @@ inputs:
         publicKey: key.pub
         prefix: spiffe://domain/path
     claims:
-      uid: sub
-      user: sub
+      id: sub
+      subject: sub
       groups: groups
 outputs:
 - type: KubernetesTokenReview

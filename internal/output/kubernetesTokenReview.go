@@ -15,20 +15,20 @@ type KubernetesTokenReview struct {
 	MaxTTL   int64  `yaml:"maxTTL"`
 }
 
-func (o *KubernetesTokenReview) Handler(w http.ResponseWriter, result types.Result) error {
+func (o *KubernetesTokenReview) Handler(w http.ResponseWriter, validation types.Validation) error {
 	tokenReview := auth.TokenReview{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: auth.SchemeGroupVersion.String(),
 			Kind:       "TokenReview",
 		},
 		Status: auth.TokenReviewStatus{
-			Authenticated: result.Valid,
+			Authenticated: validation.Valid,
 			User: auth.UserInfo{
-				UID:      result.Claims.UID,
-				Username: result.Claims.User,
-				Groups:   result.Claims.Groups,
+				UID:      validation.Claims.ID,
+				Username: validation.Claims.Subject,
+				Groups:   validation.Claims.Groups,
 			},
-			Error: result.Error,
+			Error: validation.Error,
 		},
 	}
 
