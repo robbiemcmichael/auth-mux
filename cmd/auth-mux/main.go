@@ -15,16 +15,16 @@ import (
 
 func handler(i config.Input, o config.Output) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		result, err := i.Config.Handler(r)
+		validation, err := i.Config.Handler(r)
 		if err != nil {
 			log.Printf("input handler for %q: %v", i.Name, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
 
-		log.Printf("Authentication result: %+v", result)
+		log.Printf("Authentication successful: %+v", validation)
 
-		if err := o.Config.Handler(w, result); err != nil {
+		if err := o.Config.Handler(w, validation); err != nil {
 			log.Printf("output handler for %q: %v", o.Name, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
