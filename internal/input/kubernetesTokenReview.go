@@ -29,15 +29,23 @@ type Issuer struct {
 	PublicKeyFile string `yaml:"publicKey"`
 	// Parsed public key (*rsa.PublicKey, *dsa.PublicKey or *ecdsa.PublicKey)
 	PublicKey interface{}
-	// If provided, assert that the prefix is included in the ID, subject and groups claims
-	Prefix string `yaml:"prefix"`
+	// Assert that the ID includes a prefix
+	IDPrefix string `yaml:"idPrefix"`
+	// Assert that the subject includes a prefix
+	SubjectPrefix string `yaml:"subjectPrefix"`
+	// Assert that the groups include a prefix
+	GroupPrefix string `yaml:"groupPrefix"`
 }
 
 type JWTClaims struct {
-	ID      string `yaml:"id"`
+	// JWT claim to map to the ID
+	ID string `yaml:"id"`
+	// JWT claim to map to the subject
 	Subject string `yaml:"subject"`
-	Groups  string `yaml:"groups"`
-	Extra   string `yaml:"extra"`
+	// JWT claim to map to the groups
+	Groups string `yaml:"groups"`
+	// JWT claim to map to extra
+	Extra string `yaml:"extra"`
 }
 
 func (i *KubernetesTokenReview) Handler(r *http.Request) (types.Validation, error) {
@@ -61,7 +69,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 	if err != nil {
 		invalid := types.Validation{
 			Valid: false,
-			Error: fmt.Sprintf("Failed to parse token: %v", err),
+			Error: fmt.Sprintf("Failed to parse token: %v\n", err),
 		}
 		return invalid, nil
 	}
@@ -70,7 +78,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 	if err != nil {
 		invalid := types.Validation{
 			Valid: false,
-			Error: fmt.Sprintf("Failed to extract token claims: %v", err),
+			Error: fmt.Sprintf("Failed to extract token claims: %v\n", err),
 		}
 		return invalid, nil
 	}
@@ -79,7 +87,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 	if issuer == nil {
 		invalid := types.Validation{
 			Valid: false,
-			Error: fmt.Sprintf("Invalid token: unknown issuer %q", issuerString),
+			Error: fmt.Sprintf("Invalid token: unknown issuer %q\n", issuerString),
 		}
 		return invalid, nil
 	}
@@ -94,7 +102,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 	if err := token.Claims(issuer.PublicKey, &publicClaims); err != nil {
 		invalid := types.Validation{
 			Valid: false,
-			Error: fmt.Sprintf("Failed to extract token claims: %v", err),
+			Error: fmt.Sprintf("Failed to extract token claims: %v\n", err),
 		}
 		return invalid, nil
 	}
@@ -107,7 +115,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 	if err := publicClaims.Validate(expected); err != nil {
 		invalid := types.Validation{
 			Valid: false,
-			Error: fmt.Sprintf("Invalid token: %v", err),
+			Error: fmt.Sprintf("Invalid token: %v\n", err),
 		}
 		return invalid, nil
 	}
@@ -116,7 +124,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 	if err != nil {
 		invalid := types.Validation{
 			Valid: false,
-			Error: fmt.Sprintf("Invalid token: %v", err),
+			Error: fmt.Sprintf("Invalid token: %v\n", err),
 		}
 		return invalid, nil
 	}
@@ -125,6 +133,14 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 		Valid:  true,
 		Claims: identity,
 	}
+
+	assertion := types.Assertion{
+		IDPrefix:      issuer.IDPrefix,
+		SubjectPrefix: issuer.SubjectPrefix,
+		GroupPrefix:   issuer.GroupPrefix,
+	}
+
+	validation.Assert(assertion)
 
 	return validation, nil
 }
