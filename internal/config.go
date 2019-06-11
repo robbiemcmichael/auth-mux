@@ -1,4 +1,4 @@
-package config
+package internal
 
 import (
 	"fmt"
@@ -18,8 +18,7 @@ type Config struct {
 	Outputs []Output `yaml:"outputs"`
 }
 
-// An Input is able to validate an HTTP request and return a set of
-// authentication claims
+// An Input takes an HTTP request and returns a Validation
 type Input struct {
 	Type   string
 	Name   string
@@ -68,7 +67,7 @@ func (i *Input) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// An Ouput takes a set of authentication claims and provides the HTTP response
+// An Ouput takes a Validation and returns an HTTP response
 type Output struct {
 	Type   string
 	Name   string
