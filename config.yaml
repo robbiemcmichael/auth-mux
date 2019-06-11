@@ -10,7 +10,9 @@ inputs:
     issuers:
       domain:
         publicKey: key.pub
-        prefix: spiffe://domain/path
+        idPrefix: spiffe://domain/path
+        subjectPrefix: spiffe://domain/path
+        groupPrefix: spiffe://domain/path
     claims:
       id: sub
       subject: sub

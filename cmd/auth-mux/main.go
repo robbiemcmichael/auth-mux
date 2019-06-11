@@ -10,10 +10,10 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/robbiemcmichael/auth-mux/internal/config"
+	"github.com/robbiemcmichael/auth-mux/internal"
 )
 
-func handler(i config.Input, o config.Output) http.HandlerFunc {
+func handler(i internal.Input, o internal.Output) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		validation, err := i.Config.Handler(r)
 		if err != nil {
@@ -41,7 +41,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var config config.Config
+	var config internal.Config
 
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		log.Fatal(err)
