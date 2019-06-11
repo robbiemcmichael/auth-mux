@@ -59,12 +59,20 @@ func (i *KubernetesTokenReview) Handler(r *http.Request) (types.Validation, erro
 func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validation, error) {
 	token, err := jwt.ParseSigned(tokenString)
 	if err != nil {
-		return types.Validation{}, fmt.Errorf("parse token: %v", err)
+		invalid := types.Validation{
+			Valid: false,
+			Error: fmt.Sprintf("Failed to parse token: %v", err),
+		}
+		return invalid, nil
 	}
 
 	issuerString, err := getIssuer(*token)
 	if err != nil {
-		return types.Validation{}, fmt.Errorf("get issuer: %v", err)
+		invalid := types.Validation{
+			Valid: false,
+			Error: fmt.Sprintf("Failed to extract token claims: %v", err),
+		}
+		return invalid, nil
 	}
 
 	issuer := i.Issuers[issuerString]
@@ -84,13 +92,18 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 
 	var publicClaims jwt.Claims
 	if err := token.Claims(issuer.PublicKey, &publicClaims); err != nil {
-		return types.Validation{}, fmt.Errorf("parse public claims: %v", err)
+		invalid := types.Validation{
+			Valid: false,
+			Error: fmt.Sprintf("Failed to extract token claims: %v", err),
+		}
+		return invalid, nil
 	}
 
 	expected := jwt.Expected{
 		Audience: i.Audience,
 		Time:     time.Now(),
 	}
+
 	if err := publicClaims.Validate(expected); err != nil {
 		invalid := types.Validation{
 			Valid: false,
@@ -99,14 +112,18 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 		return invalid, nil
 	}
 
-	claims, err := getClaims(*token, i.Claims)
+	identity, err := getIdentity(*token, i.Claims)
 	if err != nil {
-		return types.Validation{}, err
+		invalid := types.Validation{
+			Valid: false,
+			Error: fmt.Sprintf("Invalid token: %v", err),
+		}
+		return invalid, nil
 	}
 
 	validation := types.Validation{
 		Valid:  true,
-		Claims: claims,
+		Claims: identity,
 	}
 
 	return validation, nil
@@ -141,7 +158,7 @@ func getIssuer(token jwt.JSONWebToken) (string, error) {
 	return publicClaims.Issuer, nil
 }
 
-func getClaims(token jwt.JSONWebToken, fields JWTClaims) (types.Claims, error) {
+func getIdentity(token jwt.JSONWebToken, fields JWTClaims) (types.Claims, error) {
 	var claims interface{}
 	if err := token.UnsafeClaimsWithoutVerification(&claims); err != nil {
 		return types.Claims{}, err
