@@ -22,7 +22,11 @@ func handler(i internal.Input, o internal.Output) http.HandlerFunc {
 			return
 		}
 
-		log.Printf("Authentication successful: %+v", validation)
+		if validation.Valid {
+			log.Printf("Valid authentication: %+v\n", validation)
+		} else {
+			log.Printf("Invalid authentication: %+v\n", validation)
+		}
 
 		if err := o.Config.Handler(w, validation); err != nil {
 			log.Printf("output handler for %q: %v", o.Name, err)

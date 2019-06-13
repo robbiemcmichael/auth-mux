@@ -18,6 +18,9 @@ inputs:
       subject: sub
       groups: groups
 outputs:
+- type: Identity
+  name: identity
+  path: /
 - type: KubernetesTokenReview
   name: kubernetes
   path: /kubernetes
