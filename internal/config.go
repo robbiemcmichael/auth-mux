@@ -90,6 +90,8 @@ func (o *Output) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var config output.Output
 
 	switch t := wrapper.Type; t {
+	case "Identity":
+		config = new(output.Identity)
 	case "KubernetesTokenReview":
 		config = new(output.KubernetesTokenReview)
 	default:
