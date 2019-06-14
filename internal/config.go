@@ -6,7 +6,10 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/robbiemcmichael/auth-mux/internal/input"
+	inputKubernetesTokenReview "github.com/robbiemcmichael/auth-mux/internal/input/kubernetesTokenReview"
 	"github.com/robbiemcmichael/auth-mux/internal/output"
+	outputIdentity "github.com/robbiemcmichael/auth-mux/internal/output/identity"
+	outputKubernetesTokenReview "github.com/robbiemcmichael/auth-mux/internal/output/kubernetesTokenReview"
 )
 
 type Config struct {
@@ -42,7 +45,7 @@ func (i *Input) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	switch t := wrapper.Type; t {
 	case "KubernetesTokenReview":
-		config = new(input.KubernetesTokenReview)
+		config = new(inputKubernetesTokenReview.Input)
 	default:
 		return fmt.Errorf("unmarshal Input: unknown type %q", t)
 	}
@@ -91,9 +94,9 @@ func (o *Output) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	switch t := wrapper.Type; t {
 	case "Identity":
-		config = new(output.Identity)
+		config = new(outputIdentity.Output)
 	case "KubernetesTokenReview":
-		config = new(output.KubernetesTokenReview)
+		config = new(outputKubernetesTokenReview.Output)
 	default:
 		return fmt.Errorf("unmarshal Output: unknown type %q", t)
 	}

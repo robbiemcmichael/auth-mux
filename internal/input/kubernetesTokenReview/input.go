@@ -1,4 +1,4 @@
-package input
+package kubernetesTokenReview
 
 import (
 	"crypto/x509"
@@ -15,7 +15,7 @@ import (
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
-type KubernetesTokenReview struct {
+type Input struct {
 	// Token will be rejected if the audience does not match
 	Audience []string `yaml:"audience"`
 	// A map containing issuers and their validation configuration
@@ -48,7 +48,7 @@ type JWTClaims struct {
 	Extra string `yaml:"extra"`
 }
 
-func (i *KubernetesTokenReview) Handler(r *http.Request) (types.Validation, error) {
+func (i *Input) Handler(r *http.Request) (types.Validation, error) {
 	decoder := json.NewDecoder(r.Body)
 
 	var tokenReview auth.TokenReview
@@ -64,7 +64,7 @@ func (i *KubernetesTokenReview) Handler(r *http.Request) (types.Validation, erro
 	return validation, nil
 }
 
-func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validation, error) {
+func (i *Input) validateToken(tokenString string) (types.Validation, error) {
 	token, err := jwt.ParseSigned(tokenString)
 	if err != nil {
 		invalid := types.Validation{
