@@ -1,21 +1,18 @@
-package input
+package jwt
 
 import (
 	"crypto/x509"
-	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"time"
 
-	auth "k8s.io/api/authentication/v1"
+	joseJWT "gopkg.in/square/go-jose.v2/jwt"
 
 	"github.com/robbiemcmichael/auth-mux/internal/types"
-	"gopkg.in/square/go-jose.v2/jwt"
 )
 
-type KubernetesTokenReview struct {
+type Config struct {
 	// Token will be rejected if the audience does not match
 	Audience []string `yaml:"audience"`
 	// A map containing issuers and their validation configuration
@@ -48,24 +45,8 @@ type JWTClaims struct {
 	Extra string `yaml:"extra"`
 }
 
-func (i *KubernetesTokenReview) Handler(r *http.Request) (types.Validation, error) {
-	decoder := json.NewDecoder(r.Body)
-
-	var tokenReview auth.TokenReview
-	if err := decoder.Decode(&tokenReview); err != nil {
-		return types.Validation{}, fmt.Errorf("decode JSON: %v", err)
-	}
-
-	validation, err := i.validateToken(tokenReview.Spec.Token)
-	if err != nil {
-		return types.Validation{}, fmt.Errorf("validate token: %v", err)
-	}
-
-	return validation, nil
-}
-
-func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validation, error) {
-	token, err := jwt.ParseSigned(tokenString)
+func (c *Config) Validate(tokenString string) (types.Validation, error) {
+	token, err := joseJWT.ParseSigned(tokenString)
 	if err != nil {
 		invalid := types.Validation{
 			Valid: false,
@@ -83,7 +64,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 		return invalid, nil
 	}
 
-	issuer := i.Issuers[issuerString]
+	issuer := c.Issuers[issuerString]
 	if issuer == nil {
 		invalid := types.Validation{
 			Valid: false,
@@ -98,7 +79,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 		}
 	}
 
-	var publicClaims jwt.Claims
+	var publicClaims joseJWT.Claims
 	if err := token.Claims(issuer.PublicKey, &publicClaims); err != nil {
 		invalid := types.Validation{
 			Valid: false,
@@ -107,8 +88,8 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 		return invalid, nil
 	}
 
-	expected := jwt.Expected{
-		Audience: i.Audience,
+	expected := joseJWT.Expected{
+		Audience: c.Audience,
 		Time:     time.Now(),
 	}
 
@@ -120,7 +101,7 @@ func (i *KubernetesTokenReview) validateToken(tokenString string) (types.Validat
 		return invalid, nil
 	}
 
-	identity, err := getIdentity(*token, i.Claims)
+	identity, err := getIdentity(*token, c.Claims)
 	if err != nil {
 		invalid := types.Validation{
 			Valid: false,
@@ -165,8 +146,8 @@ func (issuer *Issuer) parsePublicKey() error {
 	return nil
 }
 
-func getIssuer(token jwt.JSONWebToken) (string, error) {
-	var publicClaims jwt.Claims
+func getIssuer(token joseJWT.JSONWebToken) (string, error) {
+	var publicClaims joseJWT.Claims
 	if err := token.UnsafeClaimsWithoutVerification(&publicClaims); err != nil {
 		return "", err
 	}
@@ -174,7 +155,7 @@ func getIssuer(token jwt.JSONWebToken) (string, error) {
 	return publicClaims.Issuer, nil
 }
 
-func getIdentity(token jwt.JSONWebToken, fields JWTClaims) (types.Claims, error) {
+func getIdentity(token joseJWT.JSONWebToken, fields JWTClaims) (types.Claims, error) {
 	var claims interface{}
 	if err := token.UnsafeClaimsWithoutVerification(&claims); err != nil {
 		return types.Claims{}, err

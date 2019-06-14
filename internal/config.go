@@ -6,7 +6,10 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/robbiemcmichael/auth-mux/internal/input"
+	inputKubernetesTokenReview "github.com/robbiemcmichael/auth-mux/internal/input/kubernetesTokenReview"
 	"github.com/robbiemcmichael/auth-mux/internal/output"
+	outputIdentity "github.com/robbiemcmichael/auth-mux/internal/output/identity"
+	outputKubernetesTokenReview "github.com/robbiemcmichael/auth-mux/internal/output/kubernetesTokenReview"
 )
 
 type Config struct {
@@ -42,7 +45,7 @@ func (i *Input) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	switch t := wrapper.Type; t {
 	case "KubernetesTokenReview":
-		config = new(input.KubernetesTokenReview)
+		config = new(inputKubernetesTokenReview.Config)
 	default:
 		return fmt.Errorf("unmarshal Input: unknown type %q", t)
 	}
@@ -54,7 +57,7 @@ func (i *Input) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	// Unmarshal the input config based on the input type
 	if err := yaml.Unmarshal(b, config); err != nil {
-		return fmt.Errorf("unmarshal Input config: %v", err)
+		return fmt.Errorf("unmarshal %s config: %v", wrapper.Type, err)
 	}
 
 	*i = Input{
@@ -91,9 +94,9 @@ func (o *Output) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	switch t := wrapper.Type; t {
 	case "Identity":
-		config = new(output.Identity)
+		config = new(outputIdentity.Config)
 	case "KubernetesTokenReview":
-		config = new(output.KubernetesTokenReview)
+		config = new(outputKubernetesTokenReview.Config)
 	default:
 		return fmt.Errorf("unmarshal Output: unknown type %q", t)
 	}
@@ -105,7 +108,7 @@ func (o *Output) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	// Unmarshal the output config based on the output type
 	if err := yaml.Unmarshal(b, config); err != nil {
-		return fmt.Errorf("unmarshal Output config: %v", err)
+		return fmt.Errorf("unmarshal %s config: %v", wrapper.Type, err)
 	}
 
 	*o = Output{

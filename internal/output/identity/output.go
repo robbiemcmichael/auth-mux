@@ -1,4 +1,4 @@
-package output
+package identity
 
 import (
 	"encoding/json"
@@ -7,8 +7,8 @@ import (
 	"github.com/robbiemcmichael/auth-mux/internal/types"
 )
 
-type Identity struct{}
+type Config struct{}
 
-func (o *Identity) Handler(w http.ResponseWriter, validation types.Validation) error {
+func (c *Config) Handler(w http.ResponseWriter, validation types.Validation) error {
 	return json.NewEncoder(w).Encode(validation)
 }

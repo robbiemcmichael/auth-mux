@@ -5,18 +5,21 @@ inputs:
   name: kubernetes
   path: /kubernetes
   config:
-    audience:
-    - kubernetes
-    issuers:
-      domain:
-        publicKey: key.pub
-        idPrefix: spiffe://domain/path
-        subjectPrefix: spiffe://domain/path
-        groupPrefix: spiffe://domain/path
-    claims:
-      id: sub
-      subject: sub
-      groups: groups
+    validator:
+      type: JWT
+      config:
+        audience:
+        - kubernetes
+        issuers:
+          domain:
+            publicKey: key.pub
+            idPrefix: spiffe://domain/path
+            subjectPrefix: spiffe://domain/path
+            groupPrefix: spiffe://domain/path
+        claims:
+          id: sub
+          subject: sub
+          groups: groups
 outputs:
 - type: Identity
   name: identity
