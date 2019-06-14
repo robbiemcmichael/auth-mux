@@ -10,12 +10,12 @@ import (
 	"github.com/robbiemcmichael/auth-mux/internal/types"
 )
 
-type Output struct {
+type Config struct {
 	Audience string `yaml:"audience"`
 	MaxTTL   int64  `yaml:"maxTTL"`
 }
 
-func (o *Output) Handler(w http.ResponseWriter, validation types.Validation) error {
+func (c *Config) Handler(w http.ResponseWriter, validation types.Validation) error {
 	tokenReview := auth.TokenReview{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: auth.SchemeGroupVersion.String(),
