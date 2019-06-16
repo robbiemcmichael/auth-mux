@@ -1,6 +1,25 @@
 cert: tls.crt
 key: tls.key
 inputs:
+- type: Bearer
+  name: bearer
+  path: /bearer
+  config:
+    validator:
+      type: JWT
+      config:
+        audience:
+        - kubernetes
+        issuers:
+          domain:
+            publicKey: key.pub
+            idPrefix: spiffe://domain/path
+            subjectPrefix: spiffe://domain/path
+            groupPrefix: spiffe://domain/path
+        claims:
+          id: sub
+          subject: sub
+          groups: groups
 - type: KubernetesTokenReview
   name: kubernetes
   path: /kubernetes

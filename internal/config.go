@@ -6,6 +6,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/robbiemcmichael/auth-mux/internal/input"
+	inputBearer "github.com/robbiemcmichael/auth-mux/internal/input/bearer"
 	inputKubernetesTokenReview "github.com/robbiemcmichael/auth-mux/internal/input/kubernetesTokenReview"
 	"github.com/robbiemcmichael/auth-mux/internal/output"
 	outputIdentity "github.com/robbiemcmichael/auth-mux/internal/output/identity"
@@ -44,6 +45,8 @@ func (i *Input) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var config input.Input
 
 	switch t := wrapper.Type; t {
+	case "Bearer":
+		config = new(inputBearer.Config)
 	case "KubernetesTokenReview":
 		config = new(inputKubernetesTokenReview.Config)
 	default:
