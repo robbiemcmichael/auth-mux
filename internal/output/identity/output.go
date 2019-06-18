@@ -10,5 +10,9 @@ import (
 type Config struct{}
 
 func (c *Config) Handler(w http.ResponseWriter, validation types.Validation) error {
+	if !validation.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+
 	return json.NewEncoder(w).Encode(validation)
 }
