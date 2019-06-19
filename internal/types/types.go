@@ -6,16 +6,16 @@ import (
 )
 
 type Validation struct {
-	Valid  bool   `yaml:"valid"`
-	Error  string `yaml:"error"`
-	Claims Claims `yaml:"claims"`
+	Valid  bool   `json:"valid"`
+	Error  string `json:"error"`
+	Claims Claims `json:"claims"`
 }
 
 type Claims struct {
-	ID      string      `yaml:"id"`
-	Subject string      `yaml:"subject"`
-	Groups  []string    `yaml:"groups"`
-	Extra   interface{} `yaml:"extra"`
+	ID      string      `json:"id"`
+	Subject string      `json:"subject"`
+	Groups  []string    `json:"groups"`
+	Extra   interface{} `json:"extra"`
 }
 
 type Assertion struct {
